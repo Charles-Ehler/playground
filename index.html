@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Tri-Tip Taco Bar</title>
+<title>Ehlerpalooza</title>
 <style>
   :root {
     --bg: #11151c;
@@ -535,8 +535,8 @@
 
 <div class="header">
   <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
-  <h1 id="flameTitle">Tri-Tip Taco Bar</h1>
-  <p>Camp Chef Woodwind · Serves 14 · <span id="versionTag"></span></p>
+  <h1 id="flameTitle">Ehlerpalooza</h1>
+  <p>Tri-Tip Taco Bar · Home Edition · Serves 14 · <span id="versionTag"></span></p>
 </div>
 
 <div class="tabs">
@@ -580,7 +580,7 @@
 
 <script>
 // Bump this every time index.html changes, so the header version tag stays in sync.
-const APP_VERSION = '2';
+const APP_VERSION = '3';
 
 const SHOPPING_DATA = [
   { category: 'Meat', items: ['Tri-tip roast, 2-2.5 lbs (x2)'] },
@@ -1167,7 +1167,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   applyTheme(next);
 });
 
-document.getElementById('flameTitle').innerHTML = FLAME_SVG + ' Tri-Tip Taco Bar';
+document.getElementById('flameTitle').innerHTML = FLAME_SVG + ' Ehlerpalooza';
 document.getElementById('versionTag').textContent = 'v' + APP_VERSION;
 
 applyTheme(getTheme());
