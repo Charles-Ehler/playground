@@ -536,7 +536,7 @@
 <div class="header">
   <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
   <h1 id="flameTitle">Tri-Tip Taco Bar</h1>
-  <p>Camp Chef Woodwind · Serves 14</p>
+  <p>Camp Chef Woodwind · Serves 14 · <span id="versionTag"></span></p>
 </div>
 
 <div class="tabs">
@@ -579,6 +579,9 @@
 </div>
 
 <script>
+// Bump this every time index.html changes, so the header version tag stays in sync.
+const APP_VERSION = '1';
+
 const SHOPPING_DATA = [
   { category: 'Meat', items: ['Tri-tip roast, 2-2.5 lbs (x2)'] },
   { category: 'Rub', items: ['Coarse ground coffee','Ancho chile powder','Smoked paprika','Kosher salt','Brown sugar','Garlic powder','Cumin','Black pepper'] },
@@ -1157,6 +1160,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 });
 
 document.getElementById('flameTitle').innerHTML = FLAME_SVG + ' Tri-Tip Taco Bar';
+document.getElementById('versionTag').textContent = 'v' + APP_VERSION;
 
 applyTheme(getTheme());
 renderShopping();
