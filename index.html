@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tri-Tip Taco Bar</title>
+<style>
+  :root {
+    --bg: #1c1410;
+    --bgGradient: radial-gradient(ellipse at top, #241a14 0%, #1c1410 55%);
+    --headerBorder: #3a2a1f;
+    --text: #e8ddd0;
+    --subtext: #9c8a78;
+    --faintText: #6b5d4f;
+    --accent: #c98a4b;
+    --accentBright: #e0a868;
+    --accentText: #1c1410;
+    --cardBg: #241a14;
+    --cardBgDone: #1f1813;
+    --cardBorder: #3a2a1f;
+    --divider: #2a1f17;
+    --checkboxBorder: #5a4636;
+    --noteBg: #1f1813;
+    --noteText: #c9a878;
+    --ingredientText: #d8cbbb;
+    --tipBg: #2a2014;
+    --tipBorder: #4a3a22;
+    --tipText: #d4b878;
+    --shadow: 0 2px 12px rgba(0,0,0,0.3);
+    --good: #7a9b6e;
+    --goodText: #c8dcc0;
+  }
+  [data-theme="light"] {
+    --bg: #fbf6ef;
+    --bgGradient: radial-gradient(ellipse at top, #ffffff 0%, #fbf6ef 55%);
+    --headerBorder: #e6dac8;
+    --text: #2c2117;
+    --subtext: #7a6b58;
+    --faintText: #b3a392;
+    --accent: #b8693a;
+    --accentBright: #9c5429;
+    --accentText: #fbf6ef;
+    --cardBg: #ffffff;
+    --cardBgDone: #f4ece0;
+    --cardBorder: #e6dac8;
+    --divider: #efe5d6;
+    --checkboxBorder: #cdbfa9;
+    --noteBg: #f4ece0;
+    --noteText: #8a5a32;
+    --ingredientText: #4a3d2e;
+    --tipBg: #fdf2de;
+    --tipBorder: #e8d4ac;
+    --tipText: #8a5a1e;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --good: #5a8050;
+    --goodText: #3a5a32;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bgGradient);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+    transition: background 0.25s ease, color 0.25s ease;
+    min-height: 100vh;
+  }
+  .header {
+    padding: 26px 16px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--headerBorder);
+    position: relative;
+  }
+  .header h1 {
+    font-size: 19px;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: -0.01em;
+  }
+  .header h1 svg { color: var(--accent); animation: flicker 3s ease-in-out infinite; }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.04); }
+  }
+  .header p { font-size: 12px; color: var(--subtext); margin: 4px 0 0; }
+  .theme-toggle {
+    position: absolute;
+    right: 16px;
+    top: 22px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--cardBorder);
+    background: transparent;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.2s ease;
+  }
+  .theme-toggle:active { transform: scale(0.88) rotate(15deg); background: var(--cardBg); }
+
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--headerBorder);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 20;
+  }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 4px;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--faintText);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:active { opacity: 0.7; }
+  .tab-content { display: none; padding-bottom: 48px; animation: fadeIn 0.25s ease; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Shopping tab */
+  .shop-sticky {
+    position: sticky;
+    top: 45px;
+    background: var(--bg);
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--headerBorder);
+    z-index: 10;
+  }
+  .shop-sticky-row { display: flex; justify-content: space-between; align-items: center; }
+  .shop-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0;
+  }
+  .shop-count { font-size: 14px; margin: 2px 0 0; transition: color 0.2s ease; }
+  .shop-count.all-done { color: var(--good); font-weight: 600; }
+  .reset-btn {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--subtext);
+    border: 1px solid var(--cardBorder);
+    background: none;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .reset-btn:active { background: var(--cardBorder); }
+  .progress-track {
+    margin-top: 12px;
+    height: 6px;
+    width: 100%;
+    background: var(--cardBorder);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accentBright));
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 999px;
+  }
+
+  .shop-body { padding: 0 16px; }
+  .shop-group { margin-top: 20px; }
+  .shop-group-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .shop-group-head h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin: 0;
+  }
+  .shop-group-head span { font-size: 11px; color: var(--faintText); transition: color 0.2s ease; }
+  .shop-group-head span.complete { color: var(--good); }
+  .shop-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--cardBorder);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .shop-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--cardBg);
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--divider);
+    transition: background 0.2s ease;
+  }
+  .shop-item:last-child { border-bottom: none; }
+  .shop-item:active { background: var(--divider); }
+  .shop-item.checked { background: var(--cardBgDone); }
+  .checkbox {
+    flex-shrink: 0;
+    width: 21px;
+    height: 21px;
+    border-radius: 6px;
+    border: 2px solid var(--checkboxBorder);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .checkbox.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.05);
+  }
+  .checkbox svg { display: none; }
+  .checkbox.checked svg { display: block; animation: popIn 0.2s ease; }
+  @keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+  .shop-item-text { font-size: 14.5px; line-height: 1.3; color: var(--text); transition: color 0.2s ease; }
+  .shop-item.checked .shop-item-text { color: var(--faintText); text-decoration: line-through; }
+
+  .all-done-banner {
+    margin: 16px 16px 0;
+    padding: 12px 14px;
+    background: var(--noteBg);
+    border: 1px solid var(--good);
+    border-radius: 10px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 0.3s ease;
+  }
+  .all-done-banner.show { display: flex; }
+  .all-done-banner p { margin: 0; font-size: 13px; color: var(--goodText); font-weight: 600; }
+  .all-done-banner svg { color: var(--good); flex-shrink: 0; }
+
+  /* Recipe tab */
+  .recipe-tab-body { padding: 16px; }
+  .recipe-tab-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .recipe-tab-sub { font-size: 13px; color: var(--subtext); margin: 0 0 16px; }
+  .recipe-card {
+    border: 1px solid var(--cardBorder);
+    background: var(--cardBg);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    transition: border-color 0.2s ease;
+  }
+  .recipe-head {
+    width: 100%;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    font-family: inherit;
+  }
+  .recipe-head:active { background: var(--divider); }
+  .recipe-title-row { display: flex; align-items: center; gap: 8px; }
+  .recipe-head h3 { font-size: 15px; font-weight: 700; margin: 0; color: var(--text); }
+  .badge-store {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--subtext);
+    border: 1px solid var(--cardBorder);
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-weight: 600;
+  }
+  .recipe-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .recipe-meta span { font-size: 11px; color: var(--subtext); }
+  .recipe-meta .steps-done { color: var(--accent); font-weight: 600; }
+  .chevron { color: var(--subtext); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
+  .chevron.open { transform: rotate(180deg); }
+  .recipe-body { padding: 0 16px; border-top: 1px solid var(--cardBorder); max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; }
+  .recipe-body.open { padding: 4px 16px 16px; max-height: 2000px; }
+  .recipe-intro { font-size: 13px; font-style: italic; color: var(--subtext); margin: 12px 0; }
+  .recipe-section { margin-bottom: 16px; }
+  .recipe-section h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin: 0 0 8px;
+    font-weight: 600;
+  }
+  .ingredient-list { list-style: none; margin: 0; padding: 0; }
+  .ingredient-list li { font-size: 13.5px; color: var(--ingredientText); display: flex; gap: 8px; margin-bottom: 6px; }
+  .ingredient-list li::before { content: "•"; color: var(--accent); flex-shrink: 0; }
+  .step-list { list-style: none; margin: 0; padding: 0; }
+  .step-item { display: flex; gap: 12px; cursor: pointer; user-select: none; margin-bottom: 10px; }
+  .step-item:active .step-text { opacity: 0.6; }
+  .step-num {
+    flex-shrink: 0;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    border: 2px solid var(--checkboxBorder);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--checkboxBorder);
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .step-num.checked { background: var(--accent); border-color: var(--accent); color: var(--accentText); transform: scale(1.05); }
+  .step-num svg { display: none; }
+  .step-num.checked svg { display: block; animation: popIn 0.2s ease; }
+  .step-num.checked .step-num-text { display: none; }
+  .step-text { font-size: 13.5px; line-height: 1.3; color: var(--text); transition: color 0.2s ease; }
+  .step-item.checked .step-text { color: var(--faintText); text-decoration: line-through; }
+  .recipe-note {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--noteBg);
+    border: 1px solid var(--cardBorder);
+    border-radius: 8px;
+    display: flex;
+    gap: 8px;
+  }
+  .recipe-note p { font-size: 12.5px; color: var(--noteText); margin: 0; }
+  .recipe-note svg { flex-shrink: 0; margin-top: 2px; color: var(--accent); }
+
+  /* Prep tab */
+  .prep-tab-body { padding: 16px; }
+  .prep-tab-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .prep-tab-sub { font-size: 13px; color: var(--subtext); margin: 0 0 18px; }
+  .prep-timeline { position: relative; padding-left: 28px; }
+  .prep-timeline::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--cardBorder);
+  }
+  .prep-day { margin-bottom: 24px; position: relative; }
+  .prep-day-marker {
+    position: absolute;
+    left: -28px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--cardBg);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .prep-day-marker.done { background: var(--accent); }
+  .prep-day-marker svg { display: none; color: var(--accentText); }
+  .prep-day-marker.done svg { display: block; animation: popIn 0.2s ease; }
+  .prep-day-head { margin-bottom: 10px; }
+  .prep-day-head h3 { font-size: 14.5px; font-weight: 700; margin: 0; color: var(--text); }
+  .prep-day-head p { font-size: 12px; color: var(--subtext); margin: 2px 0 0; }
+  .prep-task {
+    border: 1px solid var(--cardBorder);
+    background: var(--cardBg);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .prep-task-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .prep-task-head:active { background: var(--divider); }
+  .prep-task.checked { background: var(--cardBgDone); }
+  .prep-task-text-wrap { flex: 1; min-width: 0; }
+  .prep-task-title { font-size: 14px; font-weight: 600; color: var(--text); transition: color 0.2s ease; }
+  .prep-task.checked .prep-task-title { color: var(--faintText); text-decoration: line-through; }
+  .prep-task-sub { font-size: 11.5px; color: var(--subtext); margin-top: 1px; }
+  .prep-task-expand {
+    color: var(--subtext);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+  .prep-task-expand.open { transform: rotate(180deg); }
+  .prep-task-detail {
+    padding: 0 14px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    border-top: 1px solid transparent;
+  }
+  .prep-task-detail.open {
+    padding: 2px 14px 14px;
+    max-height: 400px;
+    border-top: 1px solid var(--cardBorder);
+  }
+  .prep-task-detail p { font-size: 13px; color: var(--ingredientText); line-height: 1.5; margin: 10px 0 0; }
+  .prep-tip {
+    margin-top: 10px;
+    padding: 9px 11px;
+    background: var(--tipBg);
+    border: 1px solid var(--tipBorder);
+    border-radius: 8px;
+    display: flex;
+    gap: 7px;
+  }
+  .prep-tip svg { flex-shrink: 0; margin-top: 1px; color: var(--tipText); }
+  .prep-tip p { margin: 0; font-size: 12px; color: var(--tipText); line-height: 1.4; }
+
+  /* Shared icon button reset */
+  svg { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
+  <h1 id="flameTitle">Tri-Tip Taco Bar</h1>
+  <p>Camp Chef Woodwind · Serves 14</p>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="prep">Prep</button>
+  <button class="tab-btn" data-tab="shopping">Shopping</button>
+  <button class="tab-btn" data-tab="recipes">Recipes</button>
+</div>
+
+<div class="tab-content active" id="tab-prep">
+  <div class="prep-tab-body">
+    <p class="prep-tab-label">Prep Timeline</p>
+    <p class="prep-tab-sub">Everything to do before serve, in order</p>
+    <div class="prep-timeline" id="prepTimeline"></div>
+  </div>
+</div>
+
+<div class="tab-content" id="tab-shopping">
+  <div class="shop-sticky">
+    <div class="shop-sticky-row">
+      <div>
+        <p class="shop-label">Shopping List</p>
+        <p class="shop-count" id="shopCount">0 of 0 grabbed</p>
+      </div>
+      <button class="reset-btn" id="resetBtn">Reset</button>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+  <div class="all-done-banner" id="allDoneBanner"></div>
+  <div class="shop-body" id="shopBody"></div>
+</div>
+
+<div class="tab-content" id="tab-recipes">
+  <div class="recipe-tab-body">
+    <p class="recipe-tab-label">Recipes</p>
+    <p class="recipe-tab-sub">Tri-Tip Self-Serve Taco Bar · Serves 14</p>
+    <div id="recipeBody"></div>
+  </div>
+</div>
+
+<script>
+const SHOPPING_DATA = [
+  { category: 'Meat', items: ['Tri-tip roast, 2-2.5 lbs (x2)'] },
+  { category: 'Rub', items: ['Coarse ground coffee','Ancho chile powder','Smoked paprika','Kosher salt','Brown sugar','Garlic powder','Cumin','Black pepper'] },
+  { category: 'Sauces', items: ['Sour cream, large container','Chipotles in adobo, 1 can','Avocados (x4, 3 for crema + 1 backup)','Salsa verde, 1-2 jars','Limes (x6)'] },
+  { category: 'Taco Bar Toppings', items: ['Flour tortillas, 24 count','Corn tortillas, 24 count','Cotija cheese, 1 block','Shredded Mexican blend cheese, 1 bag','Pickled red onions, store-bought jar','White onion (x1)','Shredded cabbage or slaw mix, 1 bag','Fresh cilantro, 1 large bunch','Jalapeños, fresh or pickled jar','Hot sauce','Tortilla chips, 2 large bags'] },
+  { category: 'Charro Beans', items: ['Pinto beans (x2 cans)','Bacon, 4-6 strips','Chicken broth, 1 can or carton'] },
+  { category: 'Pantry Check', items: ['Foil','Squeeze bottles (x2)','Instant read thermometer','Cast iron skillet','Plastic wrap'] }
+];
+
+const RECIPES = [
+  {
+    id: 'tritip', title: 'Coffee-Chile Tri-Tip', time: '~3 hrs + overnight rub',
+    intro: 'The centerpiece. Smoked low, then seared hot for bark.',
+    sections: [{ heading: 'Rub (both roasts)', ingredients: ['2 tbsp coarse ground coffee','2 tbsp ancho chile powder','1 tbsp smoked paprika','1 tbsp kosher salt','1 tbsp brown sugar','2 tsp garlic powder','1 tsp cumin','1 tsp black pepper'] }],
+    steps: ['Mix rub ingredients. Pat both roasts completely dry. Cover every surface with rub.','Wrap tight in plastic wrap. Refrigerate overnight, minimum.','Day of: pull roasts from fridge 45 min before cooking.','Set smoker to 225°F with hickory or post oak pellets.','Place roasts fat side up directly on grates.','Smoke until internal temp hits 125°F. Roughly 2 to 2.5 hours. Go by temp, not time.','Pull roasts. Tent loosely with foil. Rest 15 min.','Crank smoker to max heat, or use a cast iron skillet on high with a thin layer of oil.','Sear each side 90 seconds. Dark bark, not burnt.','Rest again 10 min before slicing.','Slice against the grain. Tri-tip has two grain directions meeting in the middle, cut the roast in half at the bend, then slice each half against its own grain, thin.'],
+    note: 'Target: pull at 125°F, serves around 135°F after carryover and rest.'
+  },
+  {
+    id: 'chipotle-crema', title: 'Chipotle Crema', time: '5 min + chill',
+    intro: 'Smoky, rich, a little spicy. Put it in a squeeze bottle.',
+    sections: [{ heading: 'Ingredients', ingredients: ['1 cup sour cream','2-3 chipotles in adobo + 1 tbsp adobo sauce','1 lime, juiced','1/2 tsp garlic powder','1/4 tsp salt'] }],
+    steps: ['Blend all ingredients until smooth.','Taste and adjust heat by adding more chipotle or pulling back.','Refrigerate until serve. Best made the day before, it mellows and thickens slightly overnight.'],
+    note: 'Squeeze bottle for service.'
+  },
+  {
+    id: 'avocado-crema', title: 'Avocado Crema', time: '5 min',
+    intro: 'Milder than guac, easier to drizzle.',
+    sections: [{ heading: 'Ingredients', ingredients: ['3 ripe avocados','1 cup sour cream','2 limes, juiced','2 garlic cloves','1/2 tsp salt','2-3 tbsp water, to thin if needed'] }],
+    steps: ['Blend until completely smooth.','Taste and adjust lime and salt.','Press plastic wrap directly on the surface before refrigerating, to prevent browning.'],
+    note: 'Make day-of, not day before. Squeeze bottle for service.'
+  },
+  {
+    id: 'pickled-onions', title: 'Pickled Red Onions', time: '10 min + 2 hr chill', store: true,
+    intro: 'Sharp and bright. You bought these, this is the DIY version if you ever want it instead.',
+    sections: [{ heading: 'Ingredients', ingredients: ['2 red onions, sliced paper thin','1 cup white vinegar','1 cup water','2 tbsp sugar','1 tbsp kosher salt'] }],
+    steps: ['Bring vinegar, water, sugar, and salt to a simmer. Stir until dissolved.','Pack sliced onions into a jar or container.','Pour hot brine over onions.','Cool uncovered 20 min.','Cover and refrigerate. Ready in 2 hours, best after 24.']
+  },
+  {
+    id: 'charro-beans', title: 'Charro Beans', time: '35 min',
+    intro: 'Easy self-serve side. Holds well warm.',
+    sections: [{ heading: 'Ingredients', ingredients: ['2 cans pinto beans, drained and rinsed','4-6 strips bacon, chopped','1 white onion, diced','1 jalapeño, diced','3 garlic cloves, minced','1 can (or 1.5 cups) chicken broth','1 tsp cumin','Salt and pepper to taste','Cilantro, to finish'] }],
+    steps: ['Cook bacon in a pot over medium heat until crispy. Do not drain fat.','Add onion and jalapeño. Cook 5 min until soft.','Add garlic. Cook 1 min.','Add beans, broth, and cumin.','Simmer uncovered 20-25 min until broth thickens slightly.','Taste and season. Finish with chopped cilantro before serving.']
+  }
+];
+
+const PREP_DATA = [
+  {
+    day: 'Day Before',
+    sub: 'The big prep day. Do these the night before serving.',
+    tasks: [
+      {
+        id: 'rub-tritip',
+        title: 'Rub both tri-tips',
+        sub: '5 min active',
+        detail: 'Pat both roasts completely dry with paper towels first, this is what gets the rub to stick and the bark to form. Cover every surface in rub, then wrap tight in plastic wrap and refrigerate overnight.',
+        tip: 'Dry meat is the whole secret to good bark. Skip drying and the rub slides off in the smoker.'
+      },
+      {
+        id: 'make-chipotle',
+        title: 'Make chipotle crema',
+        sub: '5 min active',
+        detail: 'Blend sour cream, chipotles in adobo, lime juice, garlic powder, and salt until smooth. Store in the fridge.',
+        tip: 'This one actually gets better overnight. The heat mellows and it thickens up slightly, perfect squeeze bottle texture by tomorrow.'
+      },
+      {
+        id: 'fridge-space',
+        title: 'Clear fridge space',
+        sub: '5 min',
+        detail: 'Two tri-tips take up more room than you think. Make space now so you are not playing fridge Tetris tomorrow morning with raw meat in your hands.',
+        tip: null
+      }
+    ]
+  },
+  {
+    day: 'Morning Of',
+    sub: 'Knock these out before the smoker even starts.',
+    tasks: [
+      {
+        id: 'make-avocado',
+        title: 'Make avocado crema',
+        sub: '5 min active',
+        detail: 'Blend avocados, sour cream, lime juice, garlic, and salt until smooth. Press plastic wrap directly onto the surface to stop browning, then refrigerate.',
+        tip: 'Make this same-day only. Avocado crema made a day ahead browns and looks off, even under plastic wrap.'
+      },
+      {
+        id: 'dice-veg',
+        title: 'Dice onion, jalapeño, garlic for beans',
+        sub: '10 min',
+        detail: 'Get all your charro bean vegetables prepped now so the actual cook is just dump-and-stir later.',
+        tip: null
+      },
+      {
+        id: 'fill-squeeze',
+        title: 'Fill squeeze bottles',
+        sub: '5 min',
+        detail: 'Transfer chipotle crema into one squeeze bottle. The avocado crema can go in the second one once it is made.',
+        tip: 'Cut the tip opening a little wider than you think. Thick cremas clog narrow tips fast.'
+      }
+    ]
+  },
+  {
+    day: 'Smoking Window',
+    sub: 'Roughly 3 hours before serve time.',
+    tasks: [
+      {
+        id: 'pull-meat',
+        title: 'Pull tri-tips from fridge',
+        sub: '45 min before smoker',
+        detail: 'Let them sit out and take the chill off before they go on. Cold meat straight from the fridge smokes unevenly.',
+        tip: null
+      },
+      {
+        id: 'start-smoker',
+        title: 'Fire up the Woodwind to 225°F',
+        sub: 'Hickory or post oak pellets',
+        detail: 'Let it come up to temp and stabilize before placing the meat on the grates.',
+        tip: null
+      },
+      {
+        id: 'start-beans',
+        title: 'Start charro beans on the stove',
+        sub: '35 min total cook',
+        detail: 'Bacon first until crispy, then onion and jalapeño, then garlic, then beans and broth. Simmer uncovered until it thickens slightly.',
+        tip: 'These hold warm fine on low heat, so they can finish early and just sit covered until serve time.'
+      }
+    ]
+  },
+  {
+    day: 'Final Hour',
+    sub: 'Once the tri-tip comes off the smoker.',
+    tasks: [
+      {
+        id: 'rest-sear-slice',
+        title: 'Rest, sear, rest again, slice',
+        sub: '~25 min total',
+        detail: 'Pull at 125°F internal. Tent and rest 15 min. Sear 90 seconds per side for bark. Rest again 10 min, then slice against the grain.',
+        tip: 'Tri-tip has two grain directions. Cut the roast in half at the bend first, then slice each half against its own grain.'
+      },
+      {
+        id: 'warm-tortillas',
+        title: 'Warm tortillas',
+        sub: '15 min',
+        detail: 'Wrap in foil, 8 per packet, and warm in the smoker or oven at 300°F. Keep wrapped to hold heat until serve.',
+        tip: null
+      },
+      {
+        id: 'set-table',
+        title: 'Set up the bar',
+        sub: '10 min',
+        detail: 'Order matters for traffic flow: plates and tortillas first, then sliced tri-tip, cheeses, both cremas and salsa verde, toppings, beans, and limes and hot sauce at the very end.',
+        tip: 'Squeeze bottles up front near the meat. People sauce before they load toppings.'
+      }
+    ]
+  }
+];
+
+const CHECK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+const FLAME_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>';
+const CLOCK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
+const SUN_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+const MOON_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+const CHEVRON_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+const BULB_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path></svg>';
+const CHECKCIRCLE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+
+const CHECKLIST_KEY = 'tritip-taco-bar-checklist';
+const THEME_KEY = 'tritip-taco-bar-theme';
+
+function getChecked() {
+  try { return JSON.parse(localStorage.getItem(CHECKLIST_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function setChecked(obj) { localStorage.setItem(CHECKLIST_KEY, JSON.stringify(obj)); }
+function shopKey(item) { return 'shop:' + item; }
+function stepKey(recipeId, idx) { return 'recipe:' + recipeId + ':step:' + idx; }
+function prepKey(taskId) { return 'prep:' + taskId; }
+
+function renderShopping() {
+  const checked = getChecked();
+  const body = document.getElementById('shopBody');
+  body.innerHTML = '';
+  let total = 0, done = 0;
+
+  SHOPPING_DATA.forEach(group => {
+    let groupDone = 0;
+    const groupEl = document.createElement('div');
+    groupEl.className = 'shop-group';
+
+    const head = document.createElement('div');
+    head.className = 'shop-group-head';
+    const h3 = document.createElement('h3');
+    h3.textContent = group.category;
+    const span = document.createElement('span');
+    head.appendChild(h3);
+    head.appendChild(span);
+    groupEl.appendChild(head);
+
+    const ul = document.createElement('ul');
+    ul.className = 'shop-list';
+
+    group.items.forEach(item => {
+      total++;
+      const key = shopKey(item);
+      const isChecked = !!checked[key];
+      if (isChecked) { done++; groupDone++; }
+
+      const li = document.createElement('li');
+      li.className = 'shop-item' + (isChecked ? ' checked' : '');
+      li.innerHTML = `
+        <span class="checkbox${isChecked ? ' checked' : ''}">${CHECK_SVG}</span>
+        <span class="shop-item-text">${item}</span>
+      `;
+      li.addEventListener('click', () => {
+        const c = getChecked();
+        c[key] = !c[key];
+        setChecked(c);
+        renderShopping();
+      });
+      ul.appendChild(li);
+    });
+
+    span.textContent = groupDone + '/' + group.items.length;
+    if (groupDone === group.items.length) span.classList.add('complete');
+    groupEl.appendChild(ul);
+    body.appendChild(groupEl);
+  });
+
+  const countEl = document.getElementById('shopCount');
+  countEl.textContent = done + ' of ' + total + ' grabbed';
+  countEl.classList.toggle('all-done', total > 0 && done === total);
+  document.getElementById('progressFill').style.width = (total ? (done / total) * 100 : 0) + '%';
+
+  const banner = document.getElementById('allDoneBanner');
+  if (total > 0 && done === total) {
+    banner.innerHTML = `${CHECKCIRCLE_SVG}<p>Cart's full. You're ready to cook.</p>`;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+let openRecipeId = null;
+
+function renderRecipes() {
+  const checked = getChecked();
+  const body = document.getElementById('recipeBody');
+  body.innerHTML = '';
+
+  RECIPES.forEach(recipe => {
+    const stepKeys = recipe.steps.map((_, i) => stepKey(recipe.id, i));
+    const doneSteps = stepKeys.filter(k => checked[k]).length;
+    const isOpen = openRecipeId === recipe.id;
+
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+
+    const headBtn = document.createElement('button');
+    headBtn.className = 'recipe-head';
+    headBtn.innerHTML = `
+      <div>
+        <div class="recipe-title-row">
+          <h3>${recipe.title}</h3>
+          ${recipe.store ? '<span class="badge-store">Bought instead</span>' : ''}
+        </div>
+        <div class="recipe-meta">
+          ${CLOCK_SVG}
+          <span>${recipe.time}</span>
+          ${doneSteps > 0 ? `<span class="steps-done">· ${doneSteps}/${recipe.steps.length} steps</span>` : ''}
+        </div>
+      </div>
+      <span class="chevron${isOpen ? ' open' : ''}">${CHEVRON_SVG}</span>
+    `;
+    headBtn.addEventListener('click', () => {
+      openRecipeId = isOpen ? null : recipe.id;
+      renderRecipes();
+    });
+    card.appendChild(headBtn);
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'recipe-body' + (isOpen ? ' open' : '');
+
+    let sectionsHtml = '';
+    recipe.sections.forEach(section => {
+      sectionsHtml += `
+        <div class="recipe-section">
+          <h4>${section.heading}</h4>
+          <ul class="ingredient-list">
+            ${section.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    });
+
+    let stepsHtml = '<ol class="step-list">';
+    recipe.steps.forEach((step, i) => {
+      const key = stepKeys[i];
+      const isChecked = !!checked[key];
+      stepsHtml += `
+        <li class="step-item${isChecked ? ' checked' : ''}" data-stepkey="${key}">
+          <span class="step-num${isChecked ? ' checked' : ''}">
+            ${CHECK_SVG}
+            <span class="step-num-text">${i + 1}</span>
+          </span>
+          <span class="step-text">${step}</span>
+        </li>
+      `;
+    });
+    stepsHtml += '</ol>';
+
+    bodyDiv.innerHTML = `
+      <p class="recipe-intro">${recipe.intro}</p>
+      ${sectionsHtml}
+      <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin:0 0 8px;font-weight:600;">Steps</h4>
+      ${stepsHtml}
+      ${recipe.note ? `<div class="recipe-note">${FLAME_SVG.replace('width="18" height="18"', 'width="14" height="14"')}<p>${recipe.note}</p></div>` : ''}
+    `;
+
+    bodyDiv.querySelectorAll('.step-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const c = getChecked();
+        const k = el.getAttribute('data-stepkey');
+        c[k] = !c[k];
+        setChecked(c);
+        renderRecipes();
+      });
+    });
+
+    card.appendChild(bodyDiv);
+    body.appendChild(card);
+  });
+}
+
+let openPrepTaskId = null;
+
+function renderPrep() {
+  const checked = getChecked();
+  const wrap = document.getElementById('prepTimeline');
+  wrap.innerHTML = '';
+
+  PREP_DATA.forEach(dayGroup => {
+    const dayDone = dayGroup.tasks.every(t => checked[prepKey(t.id)]);
+
+    const dayEl = document.createElement('div');
+    dayEl.className = 'prep-day';
+
+    const marker = document.createElement('div');
+    marker.className = 'prep-day-marker' + (dayDone ? ' done' : '');
+    marker.innerHTML = CHECK_SVG;
+    dayEl.appendChild(marker);
+
+    const head = document.createElement('div');
+    head.className = 'prep-day-head';
+    head.innerHTML = `<h3>${dayGroup.day}</h3><p>${dayGroup.sub}</p>`;
+    dayEl.appendChild(head);
+
+    dayGroup.tasks.forEach(task => {
+      const key = prepKey(task.id);
+      const isChecked = !!checked[key];
+      const isOpen = openPrepTaskId === task.id;
+
+      const taskEl = document.createElement('div');
+      taskEl.className = 'prep-task' + (isChecked ? ' checked' : '');
+
+      const headRow = document.createElement('div');
+      headRow.className = 'prep-task-head';
+      headRow.innerHTML = `
+        <span class="checkbox${isChecked ? ' checked' : ''}">${CHECK_SVG}</span>
+        <span class="prep-task-text-wrap">
+          <div class="prep-task-title">${task.title}</div>
+          <div class="prep-task-sub">${task.sub}</div>
+        </span>
+        <span class="prep-task-expand${isOpen ? ' open' : ''}">${CHEVRON_SVG}</span>
+      `;
+
+      const checkboxEl = headRow.querySelector('.checkbox');
+      checkboxEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const c = getChecked();
+        c[key] = !c[key];
+        setChecked(c);
+        renderPrep();
+      });
+
+      headRow.addEventListener('click', (e) => {
+        if (e.target.closest('.checkbox')) return;
+        openPrepTaskId = isOpen ? null : task.id;
+        renderPrep();
+      });
+
+      taskEl.appendChild(headRow);
+
+      const detail = document.createElement('div');
+      detail.className = 'prep-task-detail' + (isOpen ? ' open' : '');
+      detail.innerHTML = `
+        <p>${task.detail}</p>
+        ${task.tip ? `<div class="prep-tip">${BULB_SVG}<p>${task.tip}</p></div>` : ''}
+      `;
+      taskEl.appendChild(detail);
+
+      dayEl.appendChild(taskEl);
+    });
+
+    wrap.appendChild(dayEl);
+  });
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  setChecked({});
+  renderShopping();
+  renderRecipes();
+  renderPrep();
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
+function applyTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  document.getElementById('themeToggle').innerHTML = theme === 'dark' ? SUN_SVG : MOON_SVG;
+}
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const next = getTheme() === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+});
+
+document.getElementById('flameTitle').innerHTML = FLAME_SVG + ' Tri-Tip Taco Bar';
+
+applyTheme(getTheme());
+renderShopping();
+renderRecipes();
+renderPrep();
+</script>
+
+</body>
+</html>
