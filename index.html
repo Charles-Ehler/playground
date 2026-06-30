@@ -755,6 +755,7 @@ const CHECKCIRCLE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="n
 const CHECKLIST_KEY = 'tritip-taco-bar-checklist';
 const THEME_KEY = 'tritip-taco-bar-theme';
 const SERVE_TIME_KEY = 'tritip-taco-bar-servetime';
+const DEFAULT_SERVE_TIME = '2026-07-01T22:00:00Z'; // July 1, 2026, 5:00 PM Central Daylight Time (UTC-5)
 
 function getChecked() {
   try { return JSON.parse(localStorage.getItem(CHECKLIST_KEY)) || {}; }
@@ -767,9 +768,11 @@ function prepKey(taskId) { return 'prep:' + taskId; }
 
 function getServeTime() {
   const raw = localStorage.getItem(SERVE_TIME_KEY);
-  if (!raw) return null;
-  const d = new Date(raw);
-  return isNaN(d.getTime()) ? null : d;
+  if (raw) {
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) return d;
+  }
+  return new Date(DEFAULT_SERVE_TIME);
 }
 function setServeTime(isoLocal) { localStorage.setItem(SERVE_TIME_KEY, isoLocal); }
 
@@ -976,9 +979,9 @@ function renderServeBar() {
     <div class="serve-bar">
       <div>
         <p class="serve-bar-label">Serve Time</p>
-        <p class="serve-bar-hint">${serveTime ? 'Countdown is live for every step below.' : 'Set it to see a live countdown for every step.'}</p>
+        <p class="serve-bar-hint">Countdown is live for every step below.</p>
       </div>
-      <input type="datetime-local" id="serveTimeInput" value="${serveTime ? toLocalInputValue(serveTime) : ''}">
+      <input type="datetime-local" id="serveTimeInput" value="${toLocalInputValue(serveTime)}">
     </div>
   `;
   document.getElementById('serveTimeInput').addEventListener('change', (e) => {
@@ -990,7 +993,6 @@ function renderServeBar() {
 
 function renderDoingNow(serveTime, checked) {
   const el = document.getElementById('doingNow');
-  if (!serveTime) { el.innerHTML = ''; return; }
 
   const unchecked = PREP_DATA.flatMap(g => g.tasks).filter(t => !checked[prepKey(t.id)] && TASK_OFFSETS[t.id] != null);
 
