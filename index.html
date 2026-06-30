@@ -190,6 +190,29 @@
     border-radius: 999px;
   }
 
+  .shop-view-toggle {
+    display: flex;
+    margin-top: 12px;
+    border: 1px solid var(--cardBorder);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .view-btn {
+    flex: 1;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 999px;
+    background: none;
+    color: var(--subtext);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .view-btn.active { background: var(--accent); color: var(--accentText); }
+
   .shop-body { padding: 0 16px; }
   .shop-group { margin-top: 20px; }
   .shop-group-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
@@ -568,6 +591,7 @@
       <button class="reset-btn" id="resetBtn">Reset</button>
     </div>
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div id="shopViewToggle"></div>
   </div>
   <div class="all-done-banner" id="allDoneBanner"></div>
   <div class="shop-body" id="shopBody"></div>
@@ -586,7 +610,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/fireba
 import { getDatabase, ref, child, set, onValue } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js';
 
 // Bump this every time index.html changes, so the header version tag stays in sync.
-const APP_VERSION = '5';
+const APP_VERSION = '6';
 
 const SHOPPING_DATA = [
   { category: 'Meat', items: ['Tri-tip roast, 2-2.5 lbs (x2)'] },
@@ -596,6 +620,20 @@ const SHOPPING_DATA = [
   { category: 'Charro Beans', items: ['Pinto beans (x2 cans)','Bacon, 4-6 strips','Chicken broth, 1 can or carton'] },
   { category: 'Pantry Check', items: ['Foil','Squeeze bottles (x2)','Instant read thermometer','Cast iron skillet','Plastic wrap'] }
 ];
+
+// Same items as SHOPPING_DATA, regrouped by where you'd actually find them in a store.
+const STORE_SECTIONS = [
+  { category: 'Produce', items: ['Avocados (x4, 3 for crema + 1 backup)','Limes (x6)','White onion (x1)','Shredded cabbage or slaw mix, 1 bag','Fresh cilantro, 1 large bunch','Jalapeños, fresh or pickled jar'] },
+  { category: 'Bakery (tortillas)', items: ['Flour tortillas, 24 count','Corn tortillas, 24 count'] },
+  { category: 'Meat & Seafood', items: ['Tri-tip roast, 2-2.5 lbs (x2)','Bacon, 4-6 strips'] },
+  { category: 'Dairy & Refrigerated', items: ['Sour cream, large container','Cotija cheese, 1 block','Shredded Mexican blend cheese, 1 bag'] },
+  { category: 'Pantry & Dry Goods', items: ['Coarse ground coffee','Brown sugar','Chipotles in adobo, 1 can','Salsa verde, 1-2 jars','Pickled red onions, store-bought jar','Hot sauce','Tortilla chips, 2 large bags','Pinto beans (x2 cans)','Chicken broth, 1 can or carton'] },
+  { category: 'Spices & Seasonings', items: ['Ancho chile powder','Smoked paprika','Kosher salt','Garlic powder','Cumin','Black pepper'] },
+  { category: 'Other / Miscellaneous', items: ['Foil','Squeeze bottles (x2)','Instant read thermometer','Cast iron skillet','Plastic wrap'] }
+];
+
+// Canonical flat list of every shopping item, used for overall progress regardless of which view is showing.
+const ALL_SHOP_ITEMS = SHOPPING_DATA.flatMap(g => g.items);
 
 const RECIPES = [
   {
@@ -773,6 +811,12 @@ const CHECKLIST_KEY = 'tritip-taco-bar-checklist';
 const THEME_KEY = 'tritip-taco-bar-theme';
 const SERVE_TIME_KEY = 'tritip-taco-bar-servetime';
 const DEFAULT_SERVE_TIME = '2026-07-01T22:00:00Z'; // July 1, 2026, 5:00 PM Central Daylight Time (UTC-5)
+const SHOP_VIEW_KEY = 'tritip-taco-bar-shopview';
+
+function getShopView() {
+  return localStorage.getItem(SHOP_VIEW_KEY) === 'store' ? 'store' : 'recipe';
+}
+function setShopView(view) { localStorage.setItem(SHOP_VIEW_KEY, view); }
 
 const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyAQMY2TSIAL4kf_VoBuJ2acXz8KeJ6-P_Y',
@@ -919,13 +963,32 @@ function isTaskActive(task, dayGroup, serveTime, nowMs) {
   return !!w && nowMs >= w.start && nowMs < w.end;
 }
 
+function renderShopViewToggle(view) {
+  const el = document.getElementById('shopViewToggle');
+  el.innerHTML = `
+    <div class="shop-view-toggle">
+      <button class="view-btn${view === 'recipe' ? ' active' : ''}" data-view="recipe">By Recipe</button>
+      <button class="view-btn${view === 'store' ? ' active' : ''}" data-view="store">By Store Section</button>
+    </div>
+  `;
+  el.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setShopView(btn.dataset.view);
+      renderShopping();
+    });
+  });
+}
+
 function renderShopping() {
   const checked = getChecked();
+  const view = getShopView();
+  renderShopViewToggle(view);
+
   const body = document.getElementById('shopBody');
   body.innerHTML = '';
-  let total = 0, done = 0;
+  const groupedData = view === 'store' ? STORE_SECTIONS : SHOPPING_DATA;
 
-  SHOPPING_DATA.forEach(group => {
+  groupedData.forEach(group => {
     let groupDone = 0;
     const groupEl = document.createElement('div');
     groupEl.className = 'shop-group';
@@ -943,10 +1006,9 @@ function renderShopping() {
     ul.className = 'shop-list';
 
     group.items.forEach(item => {
-      total++;
       const key = shopKey(item);
       const isChecked = !!checked[key];
-      if (isChecked) { done++; groupDone++; }
+      if (isChecked) groupDone++;
 
       const li = document.createElement('li');
       li.className = 'shop-item' + (isChecked ? ' checked' : '');
@@ -967,6 +1029,10 @@ function renderShopping() {
     groupEl.appendChild(ul);
     body.appendChild(groupEl);
   });
+
+  // Always computed from the canonical full item list, so progress matches regardless of which view is showing.
+  const total = ALL_SHOP_ITEMS.length;
+  const done = ALL_SHOP_ITEMS.filter(item => checked[shopKey(item)]).length;
 
   const countEl = document.getElementById('shopCount');
   countEl.textContent = done + ' of ' + total + ' grabbed';
