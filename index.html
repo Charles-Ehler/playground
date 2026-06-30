@@ -505,11 +505,14 @@
     animation: fadeIn 0.3s ease;
   }
   .doing-now.finished { border-color: var(--good); }
+  .doing-now.upcoming { border-color: var(--cardBorder); background: var(--cardBg); }
   .doing-now svg { flex-shrink: 0; color: var(--accent); }
   .doing-now.finished svg { color: var(--good); }
+  .doing-now.upcoming svg { color: var(--subtext); }
   .doing-now-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--subtext); margin: 0; }
   .doing-now-title { font-size: 13.5px; font-weight: 700; color: var(--text); margin: 2px 0 0; }
   .doing-now-sub { font-size: 12px; color: var(--noteText); margin: 2px 0 0; }
+  .doing-now.upcoming .doing-now-sub { color: var(--subtext); }
   .task-badge {
     display: inline-flex;
     align-items: baseline;
@@ -583,7 +586,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/fireba
 import { getDatabase, ref, child, set, onValue } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js';
 
 // Bump this every time index.html changes, so the header version tag stays in sync.
-const APP_VERSION = '4';
+const APP_VERSION = '5';
 
 const SHOPPING_DATA = [
   { category: 'Meat', items: ['Tri-tip roast, 2-2.5 lbs (x2)'] },
@@ -754,6 +757,9 @@ const TASK_OFFSETS = {
   'rest-sear-slice': 50, 'warm-tortillas': 25, 'set-table': 10          // final hour
 };
 
+// Time-critical task ids in chronological order (earliest first), used to bound each one's "active" window.
+const CRITICAL_TASK_ORDER = Object.keys(TASK_OFFSETS).sort((a, b) => TASK_OFFSETS[b] - TASK_OFFSETS[a]);
+
 const CHECK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 const FLAME_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>';
 const CLOCK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
@@ -874,6 +880,43 @@ function getTaskTiming(taskId, serveTime, isChecked) {
     state,
     diffMs
   };
+}
+
+function startOfDay(date) {
+  const d = new Date(date.getTime());
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// General clock-time window a day-phase covers, derived from serve time and the adjacent
+// time-critical task boundaries — this is what "currently active" means for flexible tasks.
+function getPhaseWindow(dayName, serveTime) {
+  const serveMs = serveTime.getTime();
+  const dayStartMs = startOfDay(serveTime).getTime();
+  if (dayName === 'Day Before') return { start: dayStartMs - 24 * 60 * 60000, end: dayStartMs };
+  if (dayName === 'Morning Of') return { start: dayStartMs, end: serveMs - TASK_OFFSETS['pull-meat'] * 60000 };
+  if (dayName === 'Smoking Window') return { start: serveMs - TASK_OFFSETS['pull-meat'] * 60000, end: serveMs - TASK_OFFSETS['rest-sear-slice'] * 60000 };
+  if (dayName === 'Final Hour') return { start: serveMs - TASK_OFFSETS['rest-sear-slice'] * 60000, end: Infinity };
+  return { start: -Infinity, end: Infinity };
+}
+
+// {start, end} (ms) during which a task counts as "currently active." Time-critical tasks run from
+// their own calculated time up to the next time-critical task's time; flexible tasks use their day-phase window.
+function getTaskWindow(task, dayGroup, serveTime) {
+  if (TASK_OFFSETS[task.id] != null) {
+    const idx = CRITICAL_TASK_ORDER.indexOf(task.id);
+    const start = serveTime.getTime() - TASK_OFFSETS[task.id] * 60000;
+    const nextId = CRITICAL_TASK_ORDER[idx + 1];
+    const end = nextId ? serveTime.getTime() - TASK_OFFSETS[nextId] * 60000 : Infinity;
+    return { start, end };
+  }
+  if (task.window) return getPhaseWindow(dayGroup.day, serveTime);
+  return null;
+}
+
+function isTaskActive(task, dayGroup, serveTime, nowMs) {
+  const w = getTaskWindow(task, dayGroup, serveTime);
+  return !!w && nowMs >= w.start && nowMs < w.end;
 }
 
 function renderShopping() {
@@ -1056,8 +1099,15 @@ function renderServeBar() {
 
 function renderDoingNow(serveTime, checked) {
   const el = document.getElementById('doingNow');
+  const nowMs = Date.now();
 
-  const unchecked = PREP_DATA.flatMap(g => g.tasks).filter(t => !checked[prepKey(t.id)] && TASK_OFFSETS[t.id] != null);
+  const entries = [];
+  PREP_DATA.forEach(group => {
+    group.tasks.forEach(task => {
+      if (TASK_OFFSETS[task.id] != null || task.window) entries.push({ task, group });
+    });
+  });
+  const unchecked = entries.filter(({ task }) => !checked[prepKey(task.id)]);
 
   if (unchecked.length === 0) {
     el.innerHTML = `
@@ -1072,19 +1122,40 @@ function renderDoingNow(serveTime, checked) {
     return;
   }
 
-  let best = null;
-  unchecked.forEach(t => {
-    const timing = getTaskTiming(t.id, serveTime, false);
-    if (!best || Math.abs(timing.diffMs) < Math.abs(best.timing.diffMs)) best = { task: t, timing };
-  });
+  const active = unchecked.find(({ task, group }) => isTaskActive(task, group, serveTime, nowMs));
 
+  if (active) {
+    const timing = TASK_OFFSETS[active.task.id] != null ? getTaskTiming(active.task.id, serveTime, false) : null;
+    const sub = timing ? `${timing.clock} · ${timing.countdown}` : active.task.window;
+    el.innerHTML = `
+      <div class="doing-now">
+        ${CLOCK_SVG.replace('width="11" height="11"', 'width="18" height="18"')}
+        <div>
+          <p class="doing-now-label">Doing now</p>
+          <p class="doing-now-title">${active.task.title}</p>
+          <p class="doing-now-sub">${sub}</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let next = null;
+  unchecked.forEach(entry => {
+    const w = getTaskWindow(entry.task, entry.group, serveTime);
+    if (w && (!next || w.start < next.start)) next = { task: entry.task, start: w.start };
+  });
+  if (!next) { el.innerHTML = ''; return; }
+
+  const diffMs = next.start - nowMs;
+  const sub = diffMs > 0 ? `Starts ${formatCountdown(diffMs)}` : 'Starting now';
   el.innerHTML = `
-    <div class="doing-now">
+    <div class="doing-now upcoming">
       ${CLOCK_SVG.replace('width="11" height="11"', 'width="18" height="18"')}
       <div>
-        <p class="doing-now-label">Doing now</p>
-        <p class="doing-now-title">${best.task.title}</p>
-        <p class="doing-now-sub">${best.timing.clock} · ${best.timing.countdown}</p>
+        <p class="doing-now-label">Upcoming</p>
+        <p class="doing-now-title">${next.task.title}</p>
+        <p class="doing-now-sub">${sub}</p>
       </div>
     </div>
   `;
