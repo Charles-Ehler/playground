@@ -578,9 +578,12 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js';
+import { getDatabase, ref, child, set, onValue } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js';
+
 // Bump this every time index.html changes, so the header version tag stays in sync.
-const APP_VERSION = '3';
+const APP_VERSION = '4';
 
 const SHOPPING_DATA = [
   { category: 'Meat', items: ['Tri-tip roast, 2-2.5 lbs (x2)'] },
@@ -765,11 +768,68 @@ const THEME_KEY = 'tritip-taco-bar-theme';
 const SERVE_TIME_KEY = 'tritip-taco-bar-servetime';
 const DEFAULT_SERVE_TIME = '2026-07-01T22:00:00Z'; // July 1, 2026, 5:00 PM Central Daylight Time (UTC-5)
 
-function getChecked() {
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyAQMY2TSIAL4kf_VoBuJ2acXz8KeJ6-P_Y',
+  authDomain: 'tritip-taco-bar.firebaseapp.com',
+  databaseURL: 'https://tritip-taco-bar-default-rtdb.firebaseio.com',
+  projectId: 'tritip-taco-bar',
+  storageBucket: 'tritip-taco-bar.firebasestorage.app',
+  messagingSenderId: '559908070208',
+  appId: '1:559908070208:web:0c2494b920b65616ead0a5'
+};
+
+let checklistRef = null;
+
+// Realtime Database keys can't contain ".", "#", "$", "[", "]" — our raw keys (item text, etc.) can.
+function firebaseKey(rawKey) { return encodeURIComponent(rawKey).replace(/\./g, '%2E'); }
+
+function readLocalChecked() {
   try { return JSON.parse(localStorage.getItem(CHECKLIST_KEY)) || {}; }
   catch (e) { return {}; }
 }
-function setChecked(obj) { localStorage.setItem(CHECKLIST_KEY, JSON.stringify(obj)); }
+
+let checklistCache = readLocalChecked();
+
+function getChecked() { return checklistCache; }
+function setChecked(obj) {
+  checklistCache = obj;
+  localStorage.setItem(CHECKLIST_KEY, JSON.stringify(obj));
+}
+
+function toggleChecked(key) {
+  const c = getChecked();
+  const next = !c[key];
+  c[key] = next;
+  setChecked(c);
+  if (checklistRef) {
+    set(child(checklistRef, firebaseKey(key)), next).catch(err => {
+      console.warn('Could not sync checklist change to Firebase, saved locally only.', err);
+    });
+  }
+}
+
+function initFirebase() {
+  if (!FIREBASE_CONFIG.databaseURL) return;
+  try {
+    const app = initializeApp(FIREBASE_CONFIG);
+    const db = getDatabase(app);
+    checklistRef = ref(db, 'checklist');
+    onValue(checklistRef, (snapshot) => {
+      const remote = snapshot.val() || {};
+      const decoded = {};
+      Object.keys(remote).forEach(k => { decoded[decodeURIComponent(k)] = remote[k]; });
+      setChecked(decoded);
+      renderShopping();
+      renderRecipes();
+      renderPrep();
+    }, (err) => {
+      console.warn('Firebase sync unavailable, using local checklist state only.', err);
+    });
+  } catch (e) {
+    console.warn('Firebase init failed, using local checklist state only.', e);
+  }
+}
+
 function shopKey(item) { return 'shop:' + item; }
 function stepKey(recipeId, idx) { return 'recipe:' + recipeId + ':step:' + idx; }
 function prepKey(taskId) { return 'prep:' + taskId; }
@@ -853,9 +913,7 @@ function renderShopping() {
       `;
       li.addEventListener('click', () => {
         haptic();
-        const c = getChecked();
-        c[key] = !c[key];
-        setChecked(c);
+        toggleChecked(key);
         renderShopping();
       });
       ul.appendChild(li);
@@ -960,10 +1018,7 @@ function renderRecipes() {
     bodyDiv.querySelectorAll('.step-item').forEach(el => {
       el.addEventListener('click', () => {
         haptic();
-        const c = getChecked();
-        const k = el.getAttribute('data-stepkey');
-        c[k] = !c[k];
-        setChecked(c);
+        toggleChecked(el.getAttribute('data-stepkey'));
         renderRecipes();
       });
     });
@@ -1092,9 +1147,7 @@ function renderPrep() {
       checkboxEl.addEventListener('click', (e) => {
         e.stopPropagation();
         haptic();
-        const c = getChecked();
-        c[key] = !c[key];
-        setChecked(c);
+        toggleChecked(key);
         renderPrep();
       });
 
@@ -1123,6 +1176,11 @@ function renderPrep() {
 
 document.getElementById('resetBtn').addEventListener('click', () => {
   setChecked({});
+  if (checklistRef) {
+    set(checklistRef, null).catch(err => {
+      console.warn('Could not clear shared checklist on Firebase, cleared locally only.', err);
+    });
+  }
   renderShopping();
   renderRecipes();
   renderPrep();
@@ -1174,6 +1232,7 @@ applyTheme(getTheme());
 renderShopping();
 renderRecipes();
 renderPrep();
+initFirebase();
 setInterval(renderPrep, 30000);
 </script>
 
