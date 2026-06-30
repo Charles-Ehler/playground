@@ -580,7 +580,7 @@
 
 <script>
 // Bump this every time index.html changes, so the header version tag stays in sync.
-const APP_VERSION = '1';
+const APP_VERSION = '2';
 
 const SHOPPING_DATA = [
   { category: 'Meat', items: ['Tri-tip roast, 2-2.5 lbs (x2)'] },
@@ -636,6 +636,7 @@ const PREP_DATA = [
         id: 'rub-tritip',
         title: 'Rub both tri-tips',
         sub: '5 min active',
+        window: 'Evening, the day before',
         detail: 'Pat both roasts completely dry with paper towels first, this is what gets the rub to stick and the bark to form. Cover every surface in rub, then wrap tight in plastic wrap and refrigerate overnight.',
         tip: 'Dry meat is the whole secret to good bark. Skip drying and the rub slides off in the smoker.'
       },
@@ -643,6 +644,7 @@ const PREP_DATA = [
         id: 'make-chipotle',
         title: 'Make chipotle crema',
         sub: '5 min active',
+        window: 'Evening, the day before',
         detail: 'Blend sour cream, chipotles in adobo, lime juice, garlic powder, and salt until smooth. Store in the fridge.',
         tip: 'This one actually gets better overnight. The heat mellows and it thickens up slightly, perfect squeeze bottle texture by tomorrow.'
       },
@@ -650,6 +652,7 @@ const PREP_DATA = [
         id: 'fridge-space',
         title: 'Clear fridge space',
         sub: '5 min',
+        window: 'Any time, the day before',
         detail: 'Two tri-tips take up more room than you think. Make space now so you are not playing fridge Tetris tomorrow morning with raw meat in your hands.',
         tip: null
       }
@@ -663,6 +666,7 @@ const PREP_DATA = [
         id: 'make-avocado',
         title: 'Make avocado crema',
         sub: '5 min active',
+        window: 'Morning of, a few hours before serving',
         detail: 'Blend avocados, sour cream, lime juice, garlic, and salt until smooth. Press plastic wrap directly onto the surface to stop browning, then refrigerate.',
         tip: 'Make this same-day only. Avocado crema made a day ahead browns and looks off, even under plastic wrap.'
       },
@@ -670,6 +674,7 @@ const PREP_DATA = [
         id: 'dice-veg',
         title: 'Dice onion, jalapeño, garlic for beans',
         sub: '10 min',
+        window: 'Any time in the morning',
         detail: 'Get all your charro bean vegetables prepped now so the actual cook is just dump-and-stir later.',
         tip: null
       },
@@ -677,6 +682,7 @@ const PREP_DATA = [
         id: 'fill-squeeze',
         title: 'Fill squeeze bottles',
         sub: '5 min',
+        window: 'Any time in the morning, once the cremas are ready',
         detail: 'Transfer chipotle crema into one squeeze bottle. The avocado crema can go in the second one once it is made.',
         tip: 'Cut the tip opening a little wider than you think. Thick cremas clog narrow tips fast.'
       }
@@ -704,6 +710,7 @@ const PREP_DATA = [
         id: 'start-beans',
         title: 'Start charro beans on the stove',
         sub: '35 min total cook',
+        window: 'Sometime during the smoking window',
         detail: 'Bacon first until crispy, then onion and jalapeño, then garlic, then beans and broth. Simmer uncovered until it thickens slightly.',
         tip: 'These hold warm fine on low heat, so they can finish early and just sit covered until serve time.'
       }
@@ -738,12 +745,10 @@ const PREP_DATA = [
   }
 ];
 
-// Minutes before serve time that each prep task should happen.
+// Minutes before serve time for time-critical tasks only — flexible tasks use a plain-language `window` instead.
 const TASK_OFFSETS = {
-  'rub-tritip': 960, 'make-chipotle': 960, 'fridge-space': 960,       // night before, ~16h out
-  'make-avocado': 260, 'dice-veg': 260, 'fill-squeeze': 255,           // morning of
-  'pull-meat': 245, 'start-smoker': 200, 'start-beans': 200,           // smoking window
-  'rest-sear-slice': 50, 'warm-tortillas': 25, 'set-table': 10         // final hour
+  'pull-meat': 245, 'start-smoker': 200,                                // smoking window
+  'rest-sear-slice': 50, 'warm-tortillas': 25, 'set-table': 10          // final hour
 };
 
 const CHECK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
@@ -1064,9 +1069,12 @@ function renderPrep() {
       taskEl.className = 'prep-task' + (isChecked ? ' checked' : '');
 
       const timing = getTaskTiming(task.id, serveTime, isChecked);
-      const badgeHtml = timing
-        ? `<div class="task-badge state-${timing.state}"><span>${timing.clock}</span><span class="countdown">${timing.countdown}</span></div>`
-        : '';
+      let badgeHtml = '';
+      if (timing) {
+        badgeHtml = `<div class="task-badge state-${timing.state}"><span>${timing.clock}</span><span class="countdown">${timing.countdown}</span></div>`;
+      } else if (task.window) {
+        badgeHtml = `<div class="task-badge"><span>${task.window}</span></div>`;
+      }
 
       const headRow = document.createElement('div');
       headRow.className = 'prep-task-head';
