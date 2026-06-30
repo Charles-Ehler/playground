@@ -6,54 +6,58 @@
 <title>Tri-Tip Taco Bar</title>
 <style>
   :root {
-    --bg: #1c1410;
-    --bgGradient: radial-gradient(ellipse at top, #241a14 0%, #1c1410 55%);
-    --headerBorder: #3a2a1f;
-    --text: #e8ddd0;
-    --subtext: #9c8a78;
-    --faintText: #6b5d4f;
-    --accent: #c98a4b;
-    --accentBright: #e0a868;
-    --accentText: #1c1410;
-    --cardBg: #241a14;
-    --cardBgDone: #1f1813;
-    --cardBorder: #3a2a1f;
-    --divider: #2a1f17;
-    --checkboxBorder: #5a4636;
-    --noteBg: #1f1813;
-    --noteText: #c9a878;
-    --ingredientText: #d8cbbb;
-    --tipBg: #2a2014;
-    --tipBorder: #4a3a22;
-    --tipText: #d4b878;
-    --shadow: 0 2px 12px rgba(0,0,0,0.3);
-    --good: #7a9b6e;
-    --goodText: #c8dcc0;
+    --bg: #11151c;
+    --bgGradient: radial-gradient(ellipse at top, #181f29 0%, #11151c 55%);
+    --headerBorder: #232b38;
+    --text: #eef1f6;
+    --subtext: #8d96a8;
+    --faintText: #5c6678;
+    --accent: #ff6a3d;
+    --accentBright: #ffb454;
+    --accentText: #11151c;
+    --cardBg: #181f29;
+    --cardBgDone: #141a22;
+    --cardBorder: #232b38;
+    --divider: #1c232e;
+    --checkboxBorder: #39414f;
+    --noteBg: #141a22;
+    --noteText: #ffb454;
+    --ingredientText: #c9d1de;
+    --tipBg: #1c2230;
+    --tipBorder: #2c3445;
+    --tipText: #ffb454;
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+    --good: #45c98c;
+    --goodText: #b9f0d6;
+    --warn: #ff5c5c;
+    --warnText: #ffd3d3;
   }
   [data-theme="light"] {
-    --bg: #fbf6ef;
-    --bgGradient: radial-gradient(ellipse at top, #ffffff 0%, #fbf6ef 55%);
-    --headerBorder: #e6dac8;
-    --text: #2c2117;
-    --subtext: #7a6b58;
-    --faintText: #b3a392;
-    --accent: #b8693a;
-    --accentBright: #9c5429;
-    --accentText: #fbf6ef;
+    --bg: #f5f7fa;
+    --bgGradient: radial-gradient(ellipse at top, #ffffff 0%, #f5f7fa 55%);
+    --headerBorder: #e1e6ed;
+    --text: #1a2230;
+    --subtext: #5c6678;
+    --faintText: #a3acbd;
+    --accent: #e8551f;
+    --accentBright: #c2410c;
+    --accentText: #ffffff;
     --cardBg: #ffffff;
-    --cardBgDone: #f4ece0;
-    --cardBorder: #e6dac8;
-    --divider: #efe5d6;
-    --checkboxBorder: #cdbfa9;
-    --noteBg: #f4ece0;
-    --noteText: #8a5a32;
-    --ingredientText: #4a3d2e;
-    --tipBg: #fdf2de;
-    --tipBorder: #e8d4ac;
-    --tipText: #8a5a1e;
+    --cardBgDone: #eef1f5;
+    --cardBorder: #e1e6ed;
+    --divider: #edf0f4;
+    --checkboxBorder: #c7cedb;
+    --noteBg: #eef1f5;
+    --noteText: #c2410c;
+    --ingredientText: #2c384a;
+    --tipBg: #fff1e8;
+    --tipBorder: #f5c9ad;
+    --tipText: #c2410c;
     --shadow: 0 2px 12px rgba(0,0,0,0.06);
-    --good: #5a8050;
-    --goodText: #3a5a32;
+    --good: #1f9d6b;
+    --goodText: #15623f;
+    --warn: #d63b3b;
+    --warnText: #7a1f1f;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { scroll-behavior: smooth; }
@@ -457,6 +461,72 @@
   .prep-tip svg { flex-shrink: 0; margin-top: 1px; color: var(--tipText); }
   .prep-tip p { margin: 0; font-size: 12px; color: var(--tipText); line-height: 1.4; }
 
+  /* Serve-time countdown */
+  .serve-bar {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    background: var(--cardBg);
+    border: 1px solid var(--cardBorder);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .serve-bar-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .serve-bar-hint { font-size: 12px; color: var(--subtext); margin: 0; }
+  .serve-bar input[type="datetime-local"] {
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--cardBorder);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .doing-now {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    background: var(--noteBg);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeIn 0.3s ease;
+  }
+  .doing-now.finished { border-color: var(--good); }
+  .doing-now svg { flex-shrink: 0; color: var(--accent); }
+  .doing-now.finished svg { color: var(--good); }
+  .doing-now-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--subtext); margin: 0; }
+  .doing-now-title { font-size: 13.5px; font-weight: 700; color: var(--text); margin: 2px 0 0; }
+  .doing-now-sub { font-size: 12px; color: var(--noteText); margin: 2px 0 0; }
+  .task-badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--faintText);
+    margin-top: 2px;
+  }
+  .task-badge .countdown { font-weight: 700; }
+  .task-badge.state-soon .countdown, .task-badge.state-now .countdown { color: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
+  .task-badge.state-overdue .countdown { color: var(--warn); }
+  .task-badge.state-done .countdown { color: var(--good); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+
   /* Shared icon button reset */
   svg { display: block; }
 </style>
@@ -479,6 +549,8 @@
   <div class="prep-tab-body">
     <p class="prep-tab-label">Prep Timeline</p>
     <p class="prep-tab-sub">Everything to do before serve, in order</p>
+    <div id="serveBar"></div>
+    <div id="doingNow"></div>
     <div class="prep-timeline" id="prepTimeline"></div>
   </div>
 </div>
@@ -663,6 +735,14 @@ const PREP_DATA = [
   }
 ];
 
+// Minutes before serve time that each prep task should happen.
+const TASK_OFFSETS = {
+  'rub-tritip': 960, 'make-chipotle': 960, 'fridge-space': 960,       // night before, ~16h out
+  'make-avocado': 260, 'dice-veg': 260, 'fill-squeeze': 255,           // morning of
+  'pull-meat': 245, 'start-smoker': 200, 'start-beans': 200,           // smoking window
+  'rest-sear-slice': 50, 'warm-tortillas': 25, 'set-table': 10         // final hour
+};
+
 const CHECK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 const FLAME_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>';
 const CLOCK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
@@ -674,6 +754,7 @@ const CHECKCIRCLE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="n
 
 const CHECKLIST_KEY = 'tritip-taco-bar-checklist';
 const THEME_KEY = 'tritip-taco-bar-theme';
+const SERVE_TIME_KEY = 'tritip-taco-bar-servetime';
 
 function getChecked() {
   try { return JSON.parse(localStorage.getItem(CHECKLIST_KEY)) || {}; }
@@ -683,6 +764,46 @@ function setChecked(obj) { localStorage.setItem(CHECKLIST_KEY, JSON.stringify(ob
 function shopKey(item) { return 'shop:' + item; }
 function stepKey(recipeId, idx) { return 'recipe:' + recipeId + ':step:' + idx; }
 function prepKey(taskId) { return 'prep:' + taskId; }
+
+function getServeTime() {
+  const raw = localStorage.getItem(SERVE_TIME_KEY);
+  if (!raw) return null;
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? null : d;
+}
+function setServeTime(isoLocal) { localStorage.setItem(SERVE_TIME_KEY, isoLocal); }
+
+function haptic() { if (navigator.vibrate) navigator.vibrate(8); }
+
+function formatClockTime(date) {
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function formatCountdown(ms) {
+  const past = ms < 0;
+  const totalMin = Math.round(Math.abs(ms) / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  const text = h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return past ? `${text} ago` : `in ${text}`;
+}
+
+function getTaskTiming(taskId, serveTime, isChecked) {
+  const offset = TASK_OFFSETS[taskId];
+  if (offset == null || !serveTime) return null;
+  const taskTime = new Date(serveTime.getTime() - offset * 60000);
+  const diffMs = taskTime.getTime() - Date.now();
+  let state = 'future';
+  if (isChecked) state = 'done';
+  else if (diffMs <= 0) state = 'overdue';
+  else if (diffMs <= 20 * 60000) state = 'soon';
+  return {
+    clock: formatClockTime(taskTime),
+    countdown: isChecked ? 'Done' : (Math.abs(diffMs) < 60000 ? 'Now' : formatCountdown(diffMs)),
+    state,
+    diffMs
+  };
+}
 
 function renderShopping() {
   const checked = getChecked();
@@ -720,6 +841,7 @@ function renderShopping() {
         <span class="shop-item-text">${item}</span>
       `;
       li.addEventListener('click', () => {
+        haptic();
         const c = getChecked();
         c[key] = !c[key];
         setChecked(c);
@@ -826,6 +948,7 @@ function renderRecipes() {
 
     bodyDiv.querySelectorAll('.step-item').forEach(el => {
       el.addEventListener('click', () => {
+        haptic();
         const c = getChecked();
         const k = el.getAttribute('data-stepkey');
         c[k] = !c[k];
@@ -841,8 +964,73 @@ function renderRecipes() {
 
 let openPrepTaskId = null;
 
+function toLocalInputValue(date) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function renderServeBar() {
+  const serveTime = getServeTime();
+  const el = document.getElementById('serveBar');
+  el.innerHTML = `
+    <div class="serve-bar">
+      <div>
+        <p class="serve-bar-label">Serve Time</p>
+        <p class="serve-bar-hint">${serveTime ? 'Countdown is live for every step below.' : 'Set it to see a live countdown for every step.'}</p>
+      </div>
+      <input type="datetime-local" id="serveTimeInput" value="${serveTime ? toLocalInputValue(serveTime) : ''}">
+    </div>
+  `;
+  document.getElementById('serveTimeInput').addEventListener('change', (e) => {
+    if (e.target.value) setServeTime(e.target.value);
+    else localStorage.removeItem(SERVE_TIME_KEY);
+    renderPrep();
+  });
+}
+
+function renderDoingNow(serveTime, checked) {
+  const el = document.getElementById('doingNow');
+  if (!serveTime) { el.innerHTML = ''; return; }
+
+  const unchecked = PREP_DATA.flatMap(g => g.tasks).filter(t => !checked[prepKey(t.id)] && TASK_OFFSETS[t.id] != null);
+
+  if (unchecked.length === 0) {
+    el.innerHTML = `
+      <div class="doing-now finished">
+        ${CHECKCIRCLE_SVG}
+        <div>
+          <p class="doing-now-label">All prep done</p>
+          <p class="doing-now-title">Time to eat.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let best = null;
+  unchecked.forEach(t => {
+    const timing = getTaskTiming(t.id, serveTime, false);
+    if (!best || Math.abs(timing.diffMs) < Math.abs(best.timing.diffMs)) best = { task: t, timing };
+  });
+
+  el.innerHTML = `
+    <div class="doing-now">
+      ${CLOCK_SVG.replace('width="11" height="11"', 'width="18" height="18"')}
+      <div>
+        <p class="doing-now-label">Doing now</p>
+        <p class="doing-now-title">${best.task.title}</p>
+        <p class="doing-now-sub">${best.timing.clock} · ${best.timing.countdown}</p>
+      </div>
+    </div>
+  `;
+}
+
 function renderPrep() {
   const checked = getChecked();
+  const serveTime = getServeTime();
+  renderServeBar();
+  renderDoingNow(serveTime, checked);
+
   const wrap = document.getElementById('prepTimeline');
   wrap.innerHTML = '';
 
@@ -870,6 +1058,11 @@ function renderPrep() {
       const taskEl = document.createElement('div');
       taskEl.className = 'prep-task' + (isChecked ? ' checked' : '');
 
+      const timing = getTaskTiming(task.id, serveTime, isChecked);
+      const badgeHtml = timing
+        ? `<div class="task-badge state-${timing.state}"><span>${timing.clock}</span><span class="countdown">${timing.countdown}</span></div>`
+        : '';
+
       const headRow = document.createElement('div');
       headRow.className = 'prep-task-head';
       headRow.innerHTML = `
@@ -877,6 +1070,7 @@ function renderPrep() {
         <span class="prep-task-text-wrap">
           <div class="prep-task-title">${task.title}</div>
           <div class="prep-task-sub">${task.sub}</div>
+          ${badgeHtml}
         </span>
         <span class="prep-task-expand${isOpen ? ' open' : ''}">${CHEVRON_SVG}</span>
       `;
@@ -884,6 +1078,7 @@ function renderPrep() {
       const checkboxEl = headRow.querySelector('.checkbox');
       checkboxEl.addEventListener('click', (e) => {
         e.stopPropagation();
+        haptic();
         const c = getChecked();
         c[key] = !c[key];
         setChecked(c);
@@ -920,13 +1115,32 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   renderPrep();
 });
 
+const TAB_ORDER = ['prep', 'shopping', 'recipes'];
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-  });
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+let touchStartX = 0, touchStartY = 0;
+document.querySelectorAll('.tab-content').forEach(tab => {
+  tab.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+  tab.addEventListener('touchend', (e) => {
+    const deltaX = e.changedTouches[0].clientX - touchStartX;
+    const deltaY = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY) * 2) return;
+    const current = TAB_ORDER.indexOf(document.querySelector('.tab-btn.active').dataset.tab);
+    const next = current + (deltaX < 0 ? 1 : -1);
+    if (next < 0 || next >= TAB_ORDER.length) return;
+    switchTab(TAB_ORDER[next]);
+  }, { passive: true });
 });
 
 function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
@@ -946,6 +1160,7 @@ applyTheme(getTheme());
 renderShopping();
 renderRecipes();
 renderPrep();
+setInterval(renderPrep, 30000);
 </script>
 
 </body>
