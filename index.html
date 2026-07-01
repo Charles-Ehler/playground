@@ -611,7 +611,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/fireba
 import { getDatabase, ref, child, set, onValue } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js';
 
 // Bump this every time index.html changes, so the header version tag stays in sync.
-const APP_VERSION = '6';
+const APP_VERSION = '7';
 
 const SHOPPING_DATA = [
   { category: 'Meat', items: ['Tri-tip roast, 2-2.5 lbs (x2)'] },
@@ -722,25 +722,17 @@ const PREP_DATA = [
         window: 'Any time in the morning',
         detail: 'Get all your charro bean vegetables prepped now so the actual cook is just dump-and-stir later.',
         tip: null
-      },
-      {
-        id: 'fill-squeeze',
-        title: 'Fill squeeze bottles',
-        sub: '5 min',
-        window: 'Any time in the morning, once the cremas are ready',
-        detail: 'Transfer chipotle crema into one squeeze bottle. The avocado crema can go in the second one once it is made.',
-        tip: 'Cut the tip opening a little wider than you think. Thick cremas clog narrow tips fast.'
       }
     ]
   },
   {
     day: 'Smoking Window',
-    sub: 'Roughly 3 hours before serve time.',
+    sub: 'Starting 3 to 4 hours before serve time.',
     tasks: [
       {
         id: 'pull-meat',
         title: 'Pull tri-tips from fridge',
-        sub: '45 min before smoker',
+        sub: '1:15 PM — 45 min before smoker on',
         detail: 'Let them sit out and take the chill off before they go on. Cold meat straight from the fridge smokes unevenly.',
         tip: null
       },
@@ -752,12 +744,18 @@ const PREP_DATA = [
         tip: null
       },
       {
+        id: 'put-on-smoker',
+        title: 'Put tri-tips on the smoker',
+        sub: '2:00 PM, go by temp not time',
+        detail: 'Place both tri-tip roasts fat side up directly on the grates at 225°F with hickory or post oak pellets. Start checking internal temp around the 1 hour 45 minute mark. Pull when they hit 125°F internal, not before. Two 2-2.5 lb roasts typically take 2 to 2.5 hours but go by the thermometer, not the clock.',
+        tip: 'Have your instant read thermometer ready. Don\'t open the smoker to check more than once every 30 minutes or you\'ll lose heat and extend the cook.'
+      },
+      {
         id: 'start-beans',
-        title: 'Start charro beans on the stove',
-        sub: '35 min total cook',
-        window: 'Sometime during the smoking window',
-        detail: 'Bacon first until crispy, then onion and jalapeño, then garlic, then beans and broth. Simmer uncovered until it thickens slightly.',
-        tip: 'These hold warm fine on low heat, so they can finish early and just sit covered until serve time.'
+        title: 'Start beans in cast iron',
+        sub: '2:20 PM, 35 min cook',
+        detail: 'Bacon goes in cold cast iron first, then heat to medium. Cook until crispy without draining the fat, then add onion and jalapeño, cook 5 min, add garlic for 60 seconds, then beans, broth, and cumin. Simmer uncovered 20-25 minutes until slightly thickened. Transfer to a holding pot on low when done and wipe out the cast iron for the sear.',
+        tip: 'You need the cast iron free by 3:10 PM for the tri-tip sear. Time the beans so they finish by 3:00 PM at the latest.'
       }
     ]
   },
@@ -766,25 +764,42 @@ const PREP_DATA = [
     sub: 'Once the tri-tip comes off the smoker.',
     tasks: [
       {
-        id: 'rest-sear-slice',
-        title: 'Rest, sear, rest again, slice',
-        sub: '~25 min total',
-        detail: 'Pull at 125°F internal. Tent and rest 15 min. Sear 90 seconds per side for bark. Rest again 10 min, then slice against the grain.',
-        tip: 'Tri-tip has two grain directions. Cut the roast in half at the bend first, then slice each half against its own grain.'
+        id: 'smoker-tortillas',
+        title: 'Switch smoker to LS mode for tortillas',
+        sub: '160°F, Smoke 2, after tri-tip comes off',
+        window: 'After tri-tips come off the smoker',
+        detail: 'Once the tri-tip is off and resting, switch the Woodwind to Low Smoke mode at 160°F, Smoke 2. Wrap tortillas in foil packets of 8-10 each and place directly on the grates. Keep the lid closed as much as possible. They will be warm, soft, and pick up a subtle smoke flavor. Pull a whole packet to the table when people start serving rather than opening the smoker repeatedly.',
+        tip: 'Don\'t over-stuff the foil packets. 8-10 tortillas per packet is the max for even warming. Swap in a fresh packet as one empties.'
       },
       {
-        id: 'warm-tortillas',
-        title: 'Warm tortillas',
-        sub: '15 min',
-        detail: 'Wrap in foil, 8 per packet, and warm in the smoker or oven at 300°F. Keep wrapped to hold heat until serve.',
-        tip: null
+        id: 'cotija-toppings',
+        title: 'Crumble cotija and set out toppings',
+        sub: '30 min before serve',
+        window: 'About 30 min before serving',
+        detail: 'Crumble about half the cotija block by hand or with a fork into a small bowl. Pull sour cream, pickled onions, shredded cabbage, diced white onion and cilantro mix, jalapeños, salsa verde, and hot sauce from the fridge. Everything can sit at room temp for 30 minutes before serve, it\'s better slightly less than ice cold.',
+        tip: 'Keep the other half of the cotija block wrapped in the fridge as a refill.'
+      },
+      {
+        id: 'fill-cremas',
+        title: 'Fill squeeze bottles with cremas',
+        sub: '30 min before serve',
+        window: 'About 30 min before serving',
+        detail: 'Pull chipotle crema and avocado crema from the fridge. Give each a stir to recombine if any separation happened overnight. Check consistency, if either is too thick to squeeze, stir in a tablespoon of water at a time until it flows freely. Transfer into squeeze bottles. Cut the tip opening slightly wider than you think you need, thick cremas clog narrow tips.',
+        tip: 'Avocado crema browns fast once it warms up. Fill its bottle last and get it out to the table quickly.'
+      },
+      {
+        id: 'rest-sear-slice',
+        title: 'Rest, sear, rest again, slice',
+        sub: '~4:20 PM, 25 min total',
+        detail: 'Pull tri-tips at 125°F internal. Tent loosely with foil, rest 15 min. Get cast iron screaming hot on highest burner with a thin layer of oil, preheat 3-4 minutes. Sear each side 90 seconds, you want a dark bark not a burn. Rest again 10 min. Slice against the grain: cut the roast in half at the bend where the grain changes direction, then slice each half against its own grain, thin.',
+        tip: 'Do not sear early even if the meat finishes early. Hold it wrapped in foil in a towel in a dry cooler instead, then sear as close to serve time as possible so the crust is fresh.'
       },
       {
         id: 'set-table',
         title: 'Set up the bar',
-        sub: '10 min',
-        detail: 'Order matters for traffic flow: plates and tortillas first, then sliced tri-tip, cheeses, both cremas and salsa verde, toppings, beans, and limes and hot sauce at the very end.',
-        tip: 'Squeeze bottles up front near the meat. People sauce before they load toppings.'
+        sub: '4:45 PM, 10 min',
+        detail: 'Run the table in this order so traffic flows naturally: plates and tortillas first, then sliced tri-tip on a board, cheeses, both cremas in squeeze bottles and salsa verde, toppings, beans, limes and hot sauce at the very end.',
+        tip: 'Squeeze bottles go right next to the meat. People sauce before they load toppings.'
       }
     ]
   }
@@ -792,8 +807,8 @@ const PREP_DATA = [
 
 // Minutes before serve time for time-critical tasks only — flexible tasks use a plain-language `window` instead.
 const TASK_OFFSETS = {
-  'pull-meat': 245, 'start-smoker': 200,                                // smoking window
-  'rest-sear-slice': 50, 'warm-tortillas': 25, 'set-table': 10          // final hour
+  'pull-meat': 225, 'start-smoker': 200, 'put-on-smoker': 180, 'start-beans': 160,  // smoking window
+  'rest-sear-slice': 40, 'set-table': 15                                              // final hour
 };
 
 // Time-critical task ids in chronological order (earliest first), used to bound each one's "active" window.
